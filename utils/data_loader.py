@@ -1,136 +1,102 @@
 import streamlit as st
 import pandas as pd
 
+def show_data_loader():
 
-def load_data():
+    st.markdown("""
+    <style>
 
+    .upload-box{
+        background:#111827;
+        padding:25px;
+        border-radius:15px;
+        border:1px solid #1f2937;
+        margin-bottom:20px;
+    }
 
+    .info-card{
+        background:#111827;
+        padding:18px;
+        border-radius:12px;
+        border:1px solid #1f2937;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="upload-box">
+        <h2>📂 Upload Your Dataset</h2>
+        <p>Upload a CSV or Excel file to begin your analysis.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     uploaded_file = st.file_uploader(
-        "Choose a CSV or Excel file",
+        "Choose a Dataset",
         type=["csv", "xlsx"]
     )
 
-    if uploaded_file is None:
-        return None
+    if uploaded_file is not None:
 
-    # ----------------------------
-    # Read Dataset
-    # ----------------------------
-    if uploaded_file.name.endswith(".csv"):
-        df = pd.read_csv(uploaded_file)
+        try:
+
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+
+            else:
+                df = pd.read_excel(uploaded_file)
+
+            st.session_state["df"] = df
+
+            st.success("✅ Dataset uploaded successfully!")
+
+            c1, c2, c3 = st.columns(3)
+
+            with c1:
+                st.metric("Rows", df.shape[0])
+
+            with c2:
+                st.metric("Columns", df.shape[1])
+
+            with c3:
+                memory = round(df.memory_usage(deep=True).sum()/1024,2)
+                st.metric("Memory (KB)", memory)
+
+            st.markdown("---")
+
+            st.subheader("📋 Dataset Preview")
+
+            st.dataframe(
+                df.head(10),
+                use_container_width=True,
+                height=350
+            )
+
+            st.markdown("---")
+
+            st.subheader("📊 Dataset Information")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+
+                st.write("**Column Names**")
+
+                st.write(list(df.columns))
+
+            with col2:
+
+                st.write("**Data Types**")
+
+                st.dataframe(
+                    df.dtypes.astype(str),
+                    use_container_width=True
+                )
+
+        except Exception as e:
+
+            st.error(f"❌ Error loading dataset: {e}")
+
     else:
-        df = pd.read_excel(uploaded_file)
 
-    # Convert object columns to string
-    for col in df.select_dtypes(include=["object"]).columns:
-        df[col] = df[col].astype(str)
-
-  
-
-    # ----------------------------
-    # Dataset Preview
-    # ----------------------------
-    st.subheader("📄 Dataset Preview")
-    st.dataframe(df, width="stretch")
-
-    # ----------------------------
-    # Dataset Shape
-    # ----------------------------
-    st.subheader("📏 Dataset Shape")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.metric("Rows", df.shape[0])
-
-    with col2:
-        st.metric("Columns", df.shape[1])
-
-    # ----------------------------
-    # Column Names
-    # ----------------------------
-    st.subheader("📋 Column Names")
-    st.write(df.columns.tolist())
-
-    # ----------------------------
-    # Data Types
-    # ----------------------------
-    st.subheader("🔤 Data Types")
-
-    datatype_df = pd.DataFrame({
-        "Column": df.columns,
-        "Data Type": df.dtypes.astype(str)
-    })
-
-    st.dataframe(datatype_df, width="stretch")
-
-    # ----------------------------
-    # Missing Values
-    # ----------------------------
-    st.subheader("❓ Missing Values")
-
-    missing_df = pd.DataFrame({
-        "Column": df.columns,
-        "Missing Values": df.isnull().sum().values
-    })
-
-    st.dataframe(missing_df, width="stretch")
-
-    # ----------------------------
-    # Summary Statistics
-    # ----------------------------
-    st.subheader("📊 Summary Statistics")
-    st.dataframe(df.describe(include="all"), width="stretch")
-
-    # ----------------------------
-    # First 5 Rows
-    # ----------------------------
-    st.subheader("🔝 First 5 Rows")
-    st.dataframe(df.head(), width="stretch")
-
-    # ----------------------------
-    # Last 5 Rows
-    # ----------------------------
-    st.subheader("🔚 Last 5 Rows")
-    st.dataframe(df.tail(), width="stretch")
-
-    # ----------------------------
-    # Dataset Information
-    # ----------------------------
-    st.subheader("ℹ️ Dataset Information")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric("Total Rows", df.shape[0])
-
-    with col2:
-        st.metric("Total Columns", df.shape[1])
-
-    with col3:
-        st.metric("Total Cells", df.size)
-
-    memory = df.memory_usage(deep=True).sum() / 1024
-    st.info(f"💾 Memory Usage: {memory:.2f} KB")
-
-    # ----------------------------
-    # Dataset Insights
-    # ----------------------------
-    st.subheader("📌 Dataset Insights")
-
-    numeric_cols = df.select_dtypes(include="number").columns
-    categorical_cols = df.select_dtypes(exclude="number").columns
-
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        st.metric("Numeric Columns", len(numeric_cols))
-
-    with c2:
-        st.metric("Categorical Columns", len(categorical_cols))
-
-    with c3:
-        st.metric("Total Missing Values", int(df.isnull().sum().sum()))
-
-    return df
+        st.info("Upload a CSV or Excel file to continue.")

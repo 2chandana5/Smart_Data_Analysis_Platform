@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 
-def report_generator(df):
+def show_report_generator(df):
 
   
 

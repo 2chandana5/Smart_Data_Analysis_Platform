@@ -2,135 +2,111 @@ import streamlit as st
 import pandas as pd
 
 
-def data_cleaning(df):
+def show_data_cleaning():
 
-   
+    st.title("🧹 Data Cleaning")
 
-    clean_df = df.copy()
+    if "df" not in st.session_state:
 
-    # Convert object columns to string
-    for col in clean_df.select_dtypes(include=["object"]).columns:
-        clean_df[col] = clean_df[col].astype(str)
-    # -----------------------------------
-    # Remove Duplicate Rows
-    # -----------------------------------
-    st.subheader("🗑 Remove Duplicate Rows")
+        st.warning("⚠ Please upload a dataset first.")
 
-    duplicates = clean_df.duplicated().sum()
+        return
 
-    st.write(f"Duplicate Rows : **{duplicates}**")
+    df = st.session_state["df"].copy()
 
-    if st.button("Remove Duplicates"):
+    st.subheader("Dataset Summary")
 
-        clean_df = clean_df.drop_duplicates()
+    c1, c2, c3 = st.columns(3)
 
-        st.success("✅ Duplicate rows removed successfully!")
+    c1.metric("Rows", df.shape[0])
+    c2.metric("Columns", df.shape[1])
+    c3.metric("Missing Values", int(df.isnull().sum().sum()))
 
-        st.dataframe(clean_df, use_container_width="stretch")
+    st.markdown("---")
 
-    # -----------------------------------
-    # Handle Missing Values
-    # -----------------------------------
-    st.subheader("❓ Handle Missing Values")
+    st.subheader("Missing Values")
+
+    missing = df.isnull().sum()
+
+    st.dataframe(
+        missing[missing > 0].rename("Missing Count"),
+        use_container_width=True
+    )
 
     option = st.selectbox(
-        "Choose an option",
+        "Handle Missing Values",
         (
             "Do Nothing",
-            "Fill Missing Values",
-            "Remove Missing Values"
+            "Drop Missing Rows",
+            "Fill Numeric with Mean",
+            "Fill Numeric with Median",
+            "Fill Categorical with Mode"
         )
     )
 
-    if option == "Fill Missing Values":
+    if st.button("Apply Missing Value Handling"):
 
-        for col in clean_df.columns:
+        if option == "Drop Missing Rows":
 
-            if pd.api.types.is_numeric_dtype(clean_df[col]):
+            df = df.dropna()
 
-                clean_df[col] = clean_df[col].fillna(
-                    clean_df[col].mean()
-                )
+        elif option == "Fill Numeric with Mean":
 
-            else:
+            numeric_cols = df.select_dtypes(include="number").columns
 
-                mode = clean_df[col].mode()
+            for col in numeric_cols:
+                df[col] = df[col].fillna(df[col].mean())
 
-                if not mode.empty:
-                    clean_df[col] = clean_df[col].fillna(mode[0])
+        elif option == "Fill Numeric with Median":
 
-        st.success("✅ Missing values filled successfully!")
+            numeric_cols = df.select_dtypes(include="number").columns
 
-        st.dataframe(clean_df, use_container_width="stretch")
+            for col in numeric_cols:
+                df[col] = df[col].fillna(df[col].median())
 
-    elif option == "Remove Missing Values":
+        elif option == "Fill Categorical with Mode":
 
-        clean_df = clean_df.dropna()
+            cat_cols = df.select_dtypes(exclude="number").columns
 
-        st.success("✅ Missing value rows removed!")
+            for col in cat_cols:
 
-        st.dataframe(clean_df, use_container_width="stretch")
+                if not df[col].mode().empty:
+                    df[col] = df[col].fillna(df[col].mode()[0])
 
-    # -----------------------------------
-    # Filter Dataset
-    # -----------------------------------
-    st.subheader("🔍 Filter Dataset")
+        st.session_state["df"] = df
 
-    filter_column = st.selectbox(
-        "Select Column",
-        clean_df.columns,
-        key="filter"
+        st.success("✅ Missing values handled successfully!")
+
+    st.markdown("---")
+
+    st.subheader("Duplicate Rows")
+
+    duplicates = int(df.duplicated().sum())
+
+    st.metric("Duplicate Rows", duplicates)
+
+    if st.button("Remove Duplicate Rows"):
+
+        df = df.drop_duplicates()
+
+        st.session_state["df"] = df
+
+        st.success("✅ Duplicate rows removed!")
+
+    st.markdown("---")
+
+    st.subheader("Cleaned Dataset Preview")
+
+    st.dataframe(
+        st.session_state["df"].head(10),
+        use_container_width=True
     )
 
-    values = clean_df[filter_column].dropna().unique()
-
-    filter_value = st.selectbox(
-        "Select Value",
-        values,
-        key="value"
-    )
-
-    filtered_df = clean_df[
-        clean_df[filter_column] == filter_value
-    ]
-
-    st.dataframe(filtered_df, use_container_width=True)
-
-    # -----------------------------------
-    # Search Dataset
-    # -----------------------------------
-    st.subheader("🔎 Search Dataset")
-
-    search = st.text_input("Search Anything")
-
-    if search:
-
-        result = clean_df[
-            clean_df.astype(str)
-            .apply(
-                lambda x: x.str.contains(
-                    search,
-                    case=False,
-                    na=False
-                )
-            )
-            .any(axis=1)
-        ]
-
-        st.dataframe(result, use_container_width=True)
-
-    # -----------------------------------
-    # Download Cleaned Dataset
-    # -----------------------------------
-    st.subheader("⬇ Download Cleaned Dataset")
-
-    csv = clean_df.to_csv(index=False).encode("utf-8")
+    csv = st.session_state["df"].to_csv(index=False).encode("utf-8")
 
     st.download_button(
-        "📥 Download CSV",
+        "⬇ Download Cleaned Dataset",
         csv,
         "cleaned_dataset.csv",
         "text/csv"
     )
-
-    return clean_df

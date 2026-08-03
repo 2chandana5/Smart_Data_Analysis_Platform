@@ -1,54 +1,135 @@
 import streamlit as st
+import pandas as pd
 
+def show_dashboard():
 
-def dashboard(df):
+    st.markdown("""
+    <style>
+    .banner{
+        background: linear-gradient(90deg,#0b1f3a,#081018);
+        padding:25px;
+        border-radius:15px;
+        color:white;
+        margin-bottom:20px;
+    }
 
-    st.title("📊 Dashboard")
+    .metric-box{
+        background:#111827;
+        padding:18px;
+        border-radius:12px;
+        text-align:center;
+        border:1px solid #1f2937;
+    }
 
-    st.markdown("### Welcome to AI Data Analyst Assistant")
+    .metric-title{
+        color:#9CA3AF;
+        font-size:15px;
+    }
 
-    st.write("Analyze, clean, visualize and generate insights from your dataset.")
+    .metric-value{
+        color:white;
+        font-size:32px;
+        font-weight:bold;
+    }
 
-    st.divider()
+    .section{
+        background:#111827;
+        padding:20px;
+        border-radius:15px;
+        margin-top:20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
+    st.markdown("""
+    <div class="banner">
+        <h4>👋 Welcome Back!</h4>
+        <h1>AI Data Analyst Assistant</h1>
+        <h4>Analyze • Clean • Visualize • Generate Insights</h4>
+        <p>Upload your dataset and let AI uncover powerful insights.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    df = st.session_state.get("df")
+
+    if df is not None:
+
+        rows = df.shape[0]
+        cols = df.shape[1]
+        missing = df.isnull().sum().sum()
+        duplicate = df.duplicated().sum()
+
+    else:
+
+        rows = 0
+        cols = 0
+        missing = 0
+        duplicate = 0
+
+    c1,c2,c3,c4 = st.columns(4)
 
     with c1:
-        st.metric("📄 Rows", df.shape[0])
+        st.markdown(f"""
+        <div class="metric-box">
+        <div class="metric-title">📄 Total Rows</div>
+        <div class="metric-value">{rows}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     with c2:
-        st.metric("📑 Columns", df.shape[1])
+        st.markdown(f"""
+        <div class="metric-box">
+        <div class="metric-title">📊 Columns</div>
+        <div class="metric-value">{cols}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     with c3:
-        st.metric("❓ Missing", int(df.isnull().sum().sum()))
+        st.markdown(f"""
+        <div class="metric-box">
+        <div class="metric-title">❓ Missing Values</div>
+        <div class="metric-value">{missing}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     with c4:
-        st.metric("🗑 Duplicates", int(df.duplicated().sum()))
+        st.markdown(f"""
+        <div class="metric-box">
+        <div class="metric-title">📋 Duplicates</div>
+        <div class="metric-value">{duplicate}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.divider()
+    left,right = st.columns([2,1])
 
-    st.subheader("📋 Dataset Preview")
+    with left:
 
-    st.dataframe(df.head(10), width="stretch")
+        st.markdown("## 📋 Dataset Preview")
 
-    st.divider()
+        if df is not None:
 
-    st.subheader("🚀 Quick Information")
+            st.dataframe(df.head(), use_container_width=True)
 
-    col1, col2 = st.columns(2)
+        else:
 
-    with col1:
+            st.info("Upload a dataset to preview it.")
 
-        st.success("✔ Dataset Uploaded")
+    with right:
 
-        st.info(f"Numeric Columns : {len(df.select_dtypes(include='number').columns)}")
+        st.markdown("## 📈 Dataset Overview")
 
-        st.info(f"Categorical Columns : {len(df.select_dtypes(exclude='number').columns)}")
+        st.write(f"Rows : **{rows}**")
+        st.write(f"Columns : **{cols}**")
+        st.write(f"Missing Values : **{missing}**")
+        st.write(f"Duplicate Rows : **{duplicate}**")
 
-    with col2:
+    st.markdown("---")
 
-        st.warning("Ready for Cleaning")
+    st.markdown("## 🚀 Get Started")
 
-        st.success("Ready for Visualization")
+    a,b,c,d = st.columns(4)
 
-        st.success("Ready for Report Generation")
+    a.success("📂 Upload Dataset")
+    b.info("🧹 Clean Data")
+    c.warning("📊 Visualize")
+    d.success("🤖 AI Insights")
