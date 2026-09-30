@@ -67,7 +67,7 @@ AI-Data-Analyst-Assistant/
 Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/AI-Data-Analyst-Assistant.git
+git clone https://github.com/2chandana5/AI-Data-Analyst-Assistant.git
 ```
 
 Move into the project folder
