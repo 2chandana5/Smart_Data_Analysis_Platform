@@ -1,4 +1,4 @@
-# 🤖 AI Data Analyst Assistant
+#  📊 Smart Data Analysis Platform
 
 ## About the Project
 
