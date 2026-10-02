@@ -67,13 +67,13 @@ AI-Data-Analyst-Assistant/
 Clone the repository
 
 ```bash
-git clone https://github.com/2chandana5/AI-Data-Analyst-Assistant.git
+git clone https://github.com/2chandana5/Smart_Data_Analysis_Platform.git
 ```
 
 Move into the project folder
 
 ```bash
-cd AI-Data-Analyst-Assistant
+cd Smart_Data_Analysis_Platform
 ```
 
 Install the required libraries
